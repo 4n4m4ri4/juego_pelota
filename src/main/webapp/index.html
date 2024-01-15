@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+
+    <style>
+        #canvas{
+            background-color: cyan;
+        }
+    </style>
+
+</head>
+<body>
+
+    <div id="info">&nbsp;</div>
+    <div id="info2">&nbsp;</div>
+    
+    <canvas id="canvas" width="1200" height="500" ></canvas>
+    <img src="pingu.png" style="visibility: hidden"/>
+   
+
+    <script src="js/jquery.js"></script>
+    <script>
+        let canvas = document.getElementById("canvas");
+        let ctx = canvas.getContext("2d");
+        let imagen_pingu = new Image();
+        imagen_pingu.src = "pingu.png";
+        let iceberg=new Image();
+        iceberg.src="iceberg.png";
+        let oso=new Image();
+        oso.src="oso.png";
+        let pescado=new Image();
+         pescado.src="fish.png";
+        
+        let contador=0;
+        let vel=10;
+        //coordenadas de la pelota
+        let x = 0;
+        let y = 0;
+        //zona de meta
+       let meta = crearZona(690,Math.round(Math.random() * (390 - 10) + 10),150,150,"cyan");
+        //primer obstaculo
+        let obstaculo1 = crearZona(690,Math.round(Math.random() * (390 - 10) + 10),100,100,"cyan");
+        let obstaculo2 = crearZona(500,Math.round(Math.random() * (390 - 10) + 10),100,100,"cyan");
+        let obstaculo3 = crearZona(400,Math.round(Math.random() * (390 - 10) + 10),100,100,"cyan");
+        let obstaculo4 = crearZona(100,Math.round(Math.random() * (390 - 10) + 10),100,100,"cyan");
+        let obstaculo5 = crearZona(200,Math.round(Math.random() * (390 - 10) + 10),100,100,"cyan");
+        let obstaculo6 = crearZona(300,Math.round(Math.random() * (390 - 10) + 10),100,100,"cyan");
+
+
+
+        //constantes para la direccion
+        
+        const DERECHA = 1;
+        const ABAJO = 2;
+        const IZQUIERDA = 3;
+        const ARRIBA = 4;
+      
+
+        //constantes para las teclas
+        const TECLA_D = 100;
+        const TECLA_S = 115;
+        const TECLA_A=97;
+        const TECLA_X=120;
+
+        //direccion actual de la pelota
+        let direccion = DERECHA;
+
+        //funcion que crea un objeto que representa una zona rectangular en pantalla
+        function crearZona(xZona, yZona, ancho, alto,color){
+            let zona = {
+                x : xZona,
+                y : yZona,
+                ancho : ancho,
+                alto: alto,
+                color:color,
+                pintar: function(ctx){
+                	ctx.fillStyle = this.color;
+                    ctx.fillRect(this.x, this.y, this.ancho, this.alto);
+                },
+                detectarColision: function(xPingu, yPingu){
+                    if( xPingu >= this.x && xPingu <= ( this.x + this.ancho ) && 
+                        yPingu >= this.y && yPingu <= ( this.y + this.alto) ){
+                        return true;
+                    }else{
+                        return false;
+                    }
+                }
+            };//end zona
+            return zona;
+        }//end crearZona
+
+        function pintar(){
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            ctx.drawImage(imagen_pingu,x,y,60,60);
+            meta.pintar(ctx);
+            ctx.drawImage(pescado,meta.x,meta.y,150,150);
+            obstaculo1.pintar(ctx);
+            ctx.drawImage(iceberg,obstaculo1.x,obstaculo1.y,100,100);
+            obstaculo2.pintar(ctx);
+            ctx.drawImage(oso,obstaculo2.x,obstaculo2.y,100,100);
+            obstaculo3.pintar(ctx);
+            ctx.drawImage(iceberg,obstaculo3.x,obstaculo3.y,100,100);
+            obstaculo4.pintar(ctx);
+            ctx.drawImage(iceberg,obstaculo4.x,obstaculo4.y,100,100);
+            obstaculo5.pintar(ctx);
+            ctx.drawImage(oso,obstaculo5.x,obstaculo5.y,100,100);
+            obstaculo6.pintar(ctx);
+            ctx.drawImage(iceberg,obstaculo6.x,obstaculo6.y,100,100);
+            switch(direccion){
+                case DERECHA:
+                    x++;
+                    break;
+                case ABAJO:
+                    y++;
+                    break;
+                case IZQUIERDA:
+                    x--;
+                    break;
+                case ARRIBA:
+                    y--;
+                    break;
+            }//end switch
+
+            //comprobar colisiones
+            if(obstaculo1.detectarColision(x,y)||obstaculo2.detectarColision(x,y)||obstaculo3.detectarColision(x,y)||obstaculo4.detectarColision(x,y)
+            		|| obstaculo5.detectarColision(x,y) || obstaculo6.detectarColision(x,y)){
+                alert("has perdido, te chocaste con un obstaculo, has entrado en la meta: " + contador + " veces.");
+                clearInterval(timer);
+            
+            }else if(meta.detectarColision(x,y)){
+                x=0;
+                y=0;
+                contador++;
+                alert("has ganado, felicidades");
+                meta = crearZona(500,Math.round(Math.random() * (450 - 10) + 10),150,150);
+                vel= vel-1;    
+                clearInterval(timer);
+                timer = setInterval(pintar,vel);
+            }else if( x > canvas.width || y > canvas.height ||  x < 0 || y < 0 ){
+                 alert("Has perdido, te has salido de la pantalla, has pescado: " + contador + " veces.");
+                clearInterval(timer);
+            }
+
+        }//end pintar
+        
+     
+        $(document).keypress(function(e){
+            $("#info").html("tecla pulsado: " + e.which);
+            switch(e.which){
+                case TECLA_D:
+                    direccion = DERECHA;
+                    break;
+                case TECLA_S:
+                    direccion = ABAJO;
+                    break;
+                case TECLA_A:
+                    direccion = ARRIBA;
+                    break;
+                case TECLA_X:
+                    direccion = IZQUIERDA;
+                    break;
+            }//end switch
+        });//end keypress
+
+        alert("Lleva el pinguino al pescado \n"+
+            " tecla D -> derecha \n" + 
+            " tecla S -> abajo \n" +
+            " tecla A -> arriba \n" +
+            "tecla X -> izquierda");
+        let timer = setInterval(pintar,vel);
+        
+          
+
+    </script>
+
+</body>
+</html>
